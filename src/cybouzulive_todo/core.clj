@@ -1,6 +1,7 @@
 (ns cybouzulive-todo.core
   (:require [oauth.client :as oauth]
-            [clj-http.client :as http]))
+            [clj-http.client :as http]
+            [clojure.xml :as xml]))
 
 (def consumer-key "2a34a916a41354c02b47912ddb8bf3089d95459")
 (def consumer-secret "2b2888982ef9e0bd6e3c839349fdb1e311b72fc")
@@ -19,6 +20,10 @@
 (defn atom->csv [atom, csv-file]
 
   )
+
+
+(defn xml-parse [s]
+  (xml/parse (java.io.ByteArrayInputStream. (.getBytes s))))
 
 (defn -main [& args]
   (def consumer (oauth/make-consumer consumer-key
@@ -64,7 +69,14 @@
   (def res (http/get endpoint
                      {:query-params (merge credentials user-params)}))
 
-  (println (:body res))
+; (println (:body res))
+
+;  (spit "D:\\todo.xml" (:body res))
+
+  (doseq [entry (xml-seq (xml-parse (:body res))) :when (= :entry (:tag entry))]
+    (let [{[{title :content}] :content} entry]
+      (println title))
+    )
 
   )
 
